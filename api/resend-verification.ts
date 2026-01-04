@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       type: 'signup',
       email,
       options: { redirectTo: redirectTo || `${process.env.ORIGIN || ''}/verify` }
-    } as Record<string, unknown>);
+    });
 
     if (error) {
       return res.status(400).json({ error: error.message });
