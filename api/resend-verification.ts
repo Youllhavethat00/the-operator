@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Attempt to generate a new sign-up/confirmation link for the given email.
     // Note: Supabase admin APIs evolve; if this method name changes, consult Supabase docs.
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'signup',
+      type: 'magiclink',
       email,
       options: { redirectTo: redirectTo || `${process.env.ORIGIN || ''}/verify` }
     });
