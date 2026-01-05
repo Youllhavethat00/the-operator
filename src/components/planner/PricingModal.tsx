@@ -126,8 +126,8 @@ function PaymentForm({
 
         onSuccess();
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -237,8 +237,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({
       setClientSecret(data.clientSecret);
       setCustomerId(data.customerId);
       setStep('payment');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize payment');
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialize payment');
     } finally {
       setLoading(false);
     }

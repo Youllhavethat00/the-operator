@@ -16,10 +16,9 @@ import {
   Camera
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface ProfileViewProps {
-  user: SupabaseUser | null;
+  user: any;
   onSignOut: () => void;
   streak: number;
 }
@@ -66,7 +65,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onSignOut, strea
           console.error('Error loading profile:', error);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        console.error('Error loading profile:', err);
       } finally {
         setIsLoading(false);
       }
@@ -100,8 +99,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onSignOut, strea
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(null), 3000);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (err: any) {
+      setError(err.message || 'Failed to save profile');
     } finally {
       setIsSaving(false);
     }
@@ -139,18 +138,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onSignOut, strea
         setShowPasswordChange(false);
         setTimeout(() => setPasswordSuccess(null), 3000);
       }
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : String(err));
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to update password');
     } finally {
       setPasswordLoading(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!user) {
-      setError('No user session found. Please sign in again.');
-      return;
-    }
     if (deleteConfirmText !== 'DELETE') {
       setError('Please type DELETE to confirm');
       return;
@@ -168,8 +163,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onSignOut, strea
       
       // Sign out the user (actual account deletion would require admin API)
       await onSignOut();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete account');
       setIsDeleting(false);
     }
   };

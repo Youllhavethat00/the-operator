@@ -13,24 +13,28 @@ export interface SyncStatus {
 
 interface UseSupabaseSyncReturn {
   // Auth
-  user: { id: string } | null;
+  user: any;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: { message?: string } | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: { message?: string } | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  
   // Sync status
   syncStatus: SyncStatus;
+  
   // Data
   operatingCode: OperatingCode;
   dailyPlans: Record<string, DailyPlan>;
   goals: Goal[];
   streak: number;
+  
   // Actions
   updateOperatingCode: (updates: Partial<OperatingCode>) => Promise<void>;
   saveDailyPlan: (date: string, plan: DailyPlan) => Promise<void>;
   saveGoal: (goal: Omit<Goal, 'id'>) => Promise<Goal>;
   updateGoal: (goalId: string, updates: Partial<Goal>) => Promise<void>;
   deleteGoal: (goalId: string) => Promise<void>;
+  
   // Loading
   isLoading: boolean;
 }
@@ -46,7 +50,7 @@ const getDefaultTimeBlocks = (): TimeBlock[] => [
 ];
 
 export const useSupabaseSync = (): UseSupabaseSyncReturn => {
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     isOnline: navigator.onLine,
@@ -80,6 +84,7 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         await loadAllData(session.user.id);
         setupRealtimeSubscriptions(session.user.id);
@@ -91,6 +96,7 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
         setStreak(0);
         cleanupSubscriptions();
       }
+      
       setIsLoading(false);
     });
 
@@ -133,7 +139,7 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
         },
         (payload) => {
           if (payload.new) {
-            const data = payload.new as Partial<OperatingCode> & { daily_sacrifice?: string; daily_commitment?: string; comfort_refused?: string; };
+            const data = payload.new as any;
             setOperatingCode({
               principles: data.principles || defaultOperatingCode.principles,
               dailySacrifice: data.daily_sacrifice || '',
@@ -159,14 +165,14 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
         },
         (payload) => {
           if (payload.eventType === 'DELETE') {
-            const oldData = payload.old as { date: string };
+            const oldData = payload.old as any;
             setDailyPlans(prev => {
               const updated = { ...prev };
               delete updated[oldData.date];
               return updated;
             });
           } else if (payload.new) {
-            const data = payload.new as Partial<DailyPlan> & { date: string; time_blocks?: TimeBlock[]; end_of_day_review?: string; completed?: boolean };
+            const data = payload.new as any;
             const plan: DailyPlan = {
               date: data.date,
               intention: data.intention || '',
@@ -208,6 +214,7 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
 
   const loadAllData = async (userId: string) => {
     setSyncStatus(prev => ({ ...prev, isSyncing: true, error: null }));
+    
     try {
       await Promise.all([
         loadOperatingCode(userId),
@@ -215,17 +222,18 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
         loadGoals(userId),
         loadUserProfile(userId)
       ]);
+      
       setSyncStatus(prev => ({ 
         ...prev, 
         isSyncing: false, 
         lastSynced: new Date(),
         error: null 
       }));
-    } catch (error) {
+    } catch (error: any) {
       setSyncStatus(prev => ({ 
         ...prev, 
         isSyncing: false, 
-        error: error instanceof Error ? error.message : String(error)
+        error: error.message 
       }));
     }
   };
@@ -236,10 +244,12 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       .select('*')
       .eq('user_id', userId)
       .single();
-    if (error && (error as { code?: string }).code !== 'PGRST116') {
+
+    if (error && error.code !== 'PGRST116') {
       console.error('Error loading operating code:', error);
       return;
     }
+
     if (data) {
       setOperatingCode({
         principles: data.principles || defaultOperatingCode.principles,
@@ -254,18 +264,21 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
     // Load last 30 days of plans
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
     const { data, error } = await supabase
       .from('daily_plans')
       .select('*')
       .eq('user_id', userId)
       .gte('date', thirtyDaysAgo.toISOString().split('T')[0]);
+
     if (error) {
       console.error('Error loading daily plans:', error);
       return;
     }
+
     if (data) {
       const plans: Record<string, DailyPlan> = {};
-      (data as Array<Partial<DailyPlan> & { date: string; time_blocks?: TimeBlock[]; end_of_day_review?: string; completed?: boolean }>).forEach((row) => {
+      data.forEach((row: any) => {
         plans[row.date] = {
           date: row.date,
           intention: row.intention || '',
@@ -287,22 +300,23 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
+
     if (error) {
       console.error('Error loading goals:', error);
       return;
     }
+
     if (data) {
-      const loadedGoals: Goal[] = (data as Array<Partial<Goal> & { id: string; name: string; goal_type?: string; quarter?: string }>)
-        .map((row) => ({
-          id: row.id,
-          name: row.name,
-          whyItMatters: row.why_it_matters || '',
-          successMetric: row.success_metric || '',
-          deadline: row.deadline || '',
-          progress: row.progress || 0,
-          type: row.goal_type || 'annual',
-          quarter: row.quarter
-        }));
+      const loadedGoals: Goal[] = data.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        whyItMatters: row.why_it_matters || '',
+        successMetric: row.success_metric || '',
+        deadline: row.deadline || '',
+        progress: row.progress || 0,
+        type: row.goal_type || 'annual',
+        quarter: row.quarter
+      }));
       setGoals(loadedGoals);
     }
   };
@@ -313,12 +327,14 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       .select('*')
       .eq('user_id', userId)
       .single();
-    if (error && (error as { code?: string }).code !== 'PGRST116') {
+
+    if (error && error.code !== 'PGRST116') {
       console.error('Error loading user profile:', error);
       return;
     }
+
     if (data) {
-      setStreak((data as { streak?: number }).streak || 0);
+      setStreak(data.streak || 0);
     }
   };
 
@@ -329,21 +345,21 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp(
-      { email, password },
-      { redirectTo: `${window.location.origin}/` }
-    );
-    if (!error && data && (data as { user?: { id: string } }).user) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    
+    if (!error && data.user) {
       // Create initial profile and operating code
       await supabase.from('user_profiles').insert({
-        user_id: (data as { user: { id: string } }).user.id,
+        user_id: data.user.id,
         streak: 0
       });
+      
       await supabase.from('operating_code').insert({
-        user_id: (data as { user: { id: string } }).user.id,
+        user_id: data.user.id,
         principles: defaultOperatingCode.principles
       });
     }
+    
     return { error };
   };
 
@@ -354,13 +370,16 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
   // Data mutation methods
   const updateOperatingCode = useCallback(async (updates: Partial<OperatingCode>) => {
     if (!user) return;
+    
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
-    const dbUpdates: Partial<OperatingCode> & { [key: string]: unknown } = {};
+    
+    const dbUpdates: any = {};
     if (updates.principles !== undefined) dbUpdates.principles = updates.principles;
     if (updates.dailySacrifice !== undefined) dbUpdates.daily_sacrifice = updates.dailySacrifice;
     if (updates.dailyCommitment !== undefined) dbUpdates.daily_commitment = updates.dailyCommitment;
     if (updates.comfortRefused !== undefined) dbUpdates.comfort_refused = updates.comfortRefused;
     dbUpdates.updated_at = new Date().toISOString();
+
     const { error } = await supabase
       .from('operating_code')
       .upsert({
@@ -369,9 +388,10 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       }, {
         onConflict: 'user_id'
       });
+
     if (error) {
       console.error('Error updating operating code:', error);
-      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: (error as { message?: string }).message || String(error) }));
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: error.message }));
     } else {
       setOperatingCode(prev => ({ ...prev, ...updates }));
       setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSynced: new Date() }));
@@ -380,7 +400,9 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
 
   const saveDailyPlan = useCallback(async (date: string, plan: DailyPlan) => {
     if (!user) return;
+    
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
+
     const { error } = await supabase
       .from('daily_plans')
       .upsert({
@@ -397,9 +419,10 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       }, {
         onConflict: 'user_id,date'
       });
+
     if (error) {
       console.error('Error saving daily plan:', error);
-      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: (error as { message?: string }).message || String(error) }));
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: error.message }));
     } else {
       setDailyPlans(prev => ({ ...prev, [date]: plan }));
       setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSynced: new Date() }));
@@ -408,7 +431,9 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
 
   const saveGoal = useCallback(async (goal: Omit<Goal, 'id'>): Promise<Goal> => {
     if (!user) throw new Error('Not authenticated');
+    
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
+
     const { data, error } = await supabase
       .from('goals')
       .insert({
@@ -423,30 +448,36 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
       })
       .select()
       .single();
+
     if (error) {
       console.error('Error saving goal:', error);
-      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: (error as { message?: string }).message || String(error) }));
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: error.message }));
       throw error;
     }
+
     const newGoal: Goal = {
-      id: (data as { id: string }).id,
-      name: (data as { name: string }).name,
-      whyItMatters: (data as { why_it_matters?: string }).why_it_matters || '',
-      successMetric: (data as { success_metric?: string }).success_metric || '',
-      deadline: (data as { deadline?: string }).deadline || '',
-      progress: (data as { progress?: number }).progress || 0,
-      type: (data as { goal_type?: string }).goal_type || 'annual',
-      quarter: (data as { quarter?: string }).quarter
+      id: data.id,
+      name: data.name,
+      whyItMatters: data.why_it_matters || '',
+      successMetric: data.success_metric || '',
+      deadline: data.deadline || '',
+      progress: data.progress || 0,
+      type: data.goal_type || 'annual',
+      quarter: data.quarter
     };
+
     setGoals(prev => [newGoal, ...prev]);
     setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSynced: new Date() }));
+    
     return newGoal;
   }, [user]);
 
   const updateGoal = useCallback(async (goalId: string, updates: Partial<Goal>) => {
     if (!user) return;
+    
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
-    const dbUpdates: Partial<Goal> & { [key: string]: unknown } = { updated_at: new Date().toISOString() };
+
+    const dbUpdates: any = { updated_at: new Date().toISOString() };
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.whyItMatters !== undefined) dbUpdates.why_it_matters = updates.whyItMatters;
     if (updates.successMetric !== undefined) dbUpdates.success_metric = updates.successMetric;
@@ -454,14 +485,16 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
     if (updates.progress !== undefined) dbUpdates.progress = updates.progress;
     if (updates.type !== undefined) dbUpdates.goal_type = updates.type;
     if (updates.quarter !== undefined) dbUpdates.quarter = updates.quarter;
+
     const { error } = await supabase
       .from('goals')
       .update(dbUpdates)
       .eq('id', goalId)
       .eq('user_id', user.id);
+
     if (error) {
       console.error('Error updating goal:', error);
-      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: (error as { message?: string }).message || String(error) }));
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: error.message }));
     } else {
       setGoals(prev => prev.map(g => g.id === goalId ? { ...g, ...updates } : g));
       setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSynced: new Date() }));
@@ -470,15 +503,18 @@ export const useSupabaseSync = (): UseSupabaseSyncReturn => {
 
   const deleteGoal = useCallback(async (goalId: string) => {
     if (!user) return;
+    
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
+
     const { error } = await supabase
       .from('goals')
       .delete()
       .eq('id', goalId)
       .eq('user_id', user.id);
+
     if (error) {
       console.error('Error deleting goal:', error);
-      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: (error as { message?: string }).message || String(error) }));
+      setSyncStatus(prev => ({ ...prev, isSyncing: false, error: error.message }));
     } else {
       setGoals(prev => prev.filter(g => g.id !== goalId));
       setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSynced: new Date() }));

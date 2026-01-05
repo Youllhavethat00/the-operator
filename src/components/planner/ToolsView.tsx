@@ -94,7 +94,7 @@ export const ToolsView: React.FC = () => {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as string)}
+            onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.id
                 ? 'bg-amber-500 text-black'
@@ -157,7 +157,7 @@ export const ToolsView: React.FC = () => {
                 <span className="text-zinc-500 text-sm">hrs</span>
                 <select
                   value={entry.category}
-                  onChange={(e) => updateTimeEntry(entry.id, { category: e.target.value as string })}
+                  onChange={(e) => updateTimeEntry(entry.id, { category: e.target.value as any })}
                   className={`px-2 py-1 rounded text-sm font-medium ${
                     entry.category === 'productive' ? 'bg-green-500/20 text-green-400' :
                     entry.category === 'waste' ? 'bg-red-500/20 text-red-400' :

@@ -58,7 +58,7 @@ const ResetPassword: React.FC = () => {
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
-        setError(err instanceof Error ? err.message : String(err));
+    }
 
     setIsLoading(true);
 
@@ -76,13 +76,12 @@ const ResetPassword: React.FC = () => {
           navigate('/');
         }, 3000);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reset password');
+    } catch (err: any) {
+      setError(err.message || 'Failed to reset password');
     } finally {
       setIsLoading(false);
     }
   };
-}
 
   // Loading state while checking session
   if (isValidSession === null) {

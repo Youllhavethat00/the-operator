@@ -17,12 +17,12 @@ export const useNotifications = () => {
     }
 
     // Detect iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(iOS);
 
     // Detect if running as PWA
     const standalone = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      (window.navigator as any).standalone === true;
     setIsPWA(standalone);
   }, []);
 
@@ -69,7 +69,7 @@ export const useNotifications = () => {
   const playBlockBell = useCallback(() => {
     try {
       // Create audio context for bell sound
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext)();
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       // Create oscillator for bell tone
       const oscillator = audioContext.createOscillator();

@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSignIn: (email: string, password: string) => Promise<{ error: { message?: string } | null }>;
-  onSignUp: (email: string, password: string) => Promise<{ error: { message?: string } | null }>;
+  onSignIn: (email: string, password: string) => Promise<{ error: any }>;
+  onSignUp: (email: string, password: string) => Promise<{ error: any }>;
 }
 
 // Google Icon SVG Component
@@ -70,8 +70,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         } else {
           setSuccess('Password reset link sent! Check your email inbox.');
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      } catch (err: any) {
+        setError(err.message || 'Failed to send reset email');
       } finally {
         setIsLoading(false);
       }
@@ -108,8 +108,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       } else {
         onClose();
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -136,8 +136,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setIsGoogleLoading(false);
       }
       // If successful, the user will be redirected to Google
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
       setIsGoogleLoading(false);
     }
   };

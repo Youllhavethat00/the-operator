@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
   useEffect(() => {
     // Check if running as PWA
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      (window.navigator as any).standalone === true;
     setIsPWA(isStandalone);
   }, []);
 

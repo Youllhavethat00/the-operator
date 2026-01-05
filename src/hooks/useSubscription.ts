@@ -67,9 +67,9 @@ export const useSubscription = (userEmail?: string | null): UseSubscriptionRetur
         currentPeriodEnd: data.currentPeriodEnd,
         cancelAtPeriodEnd: data.cancelAtPeriodEnd
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching subscription:', err);
-      setError(err instanceof Error ? err.message : String(err));
+      setError(err.message);
       setSubscription(defaultSubscription);
     } finally {
       setIsLoading(false);
@@ -108,9 +108,9 @@ export const useSubscription = (userEmail?: string | null): UseSubscriptionRetur
       }));
 
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error canceling subscription:', err);
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
+      return { success: false, error: err.message };
     }
   }, [subscription.subscriptionId]);
 
