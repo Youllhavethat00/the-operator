@@ -347,54 +347,56 @@ const AppLayout: React.FC = () => {
         onComplete={handleWelcomeComplete}
       />
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSignIn={signIn}
-        onSignUp={signUp}
-      />
+      {!showWelcome && (
+        <>
+          {/* Auth Modal */}
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onSignIn={signIn}
+            onSignUp={signUp}
+          />
 
-      {/* Pricing Modal */}
-      <PricingModal
-        isOpen={showPricingModal}
-        onClose={() => setShowPricingModal(false)}
-        userEmail={user?.email}
-        onSubscribed={handleSubscribed}
-      />
+          {/* Pricing Modal */}
+          <PricingModal
+            isOpen={showPricingModal}
+            onClose={() => setShowPricingModal(false)}
+            userEmail={user?.email}
+            onSubscribed={handleSubscribed}
+          />
 
-      {/* Manage Subscription Modal */}
-      <ManageSubscriptionModal
-        isOpen={showManageSubscription}
-        onClose={() => setShowManageSubscription(false)}
-        subscription={subscription}
-        onCancel={cancelSubscription}
-        onRefresh={refreshSubscription}
-      />
+          {/* Manage Subscription Modal */}
+          <ManageSubscriptionModal
+            isOpen={showManageSubscription}
+            onClose={() => setShowManageSubscription(false)}
+            subscription={subscription}
+            onCancel={cancelSubscription}
+            onRefresh={refreshSubscription}
+          />
 
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <Sidebar
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-          principles={operatingCode.principles}
-          isAuthenticated={isAuthenticated}
-        />
-      </div>
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block">
+            <Sidebar
+              currentView={currentView}
+              onViewChange={setCurrentView}
+              isCollapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              principles={operatingCode.principles}
+              isAuthenticated={isAuthenticated}
+            />
+          </div>
 
-      {/* Mobile Navigation */}
-      <MobileNav
-        isOpen={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        isAuthenticated={isAuthenticated}
-      />
+          {/* Mobile Navigation */}
+          <MobileNav
+            isOpen={mobileNavOpen}
+            onClose={() => setMobileNavOpen(false)}
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            isAuthenticated={isAuthenticated}
+          />
 
-      {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+          {/* Main Content */}
+          <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
         <Header
           onMenuClick={() => setMobileNavOpen(true)}
           notificationsEnabled={notificationsEnabled}
@@ -449,6 +451,8 @@ const AppLayout: React.FC = () => {
         onInstall={handleInstallApp}
         onDismiss={handleDismissInstall}
       />
+        </>
+      )}
     </div>
   );
 };
