@@ -32,13 +32,25 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
   
   const steps = [{
     title: 'Welcome to The Operator',
-    content: <div className="text-center space-y-6">
-          <OperatorLogo className="w-24 h-24 mx-auto" />
-          <div>
-            <h2 className="text-2xl font-black text-white mb-2">The Operator</h2>
-            <p className="text-zinc-400">Your execution system that enforces focus, priorities, and follow-through</p>
+    content: <div className="relative min-h-[400px] flex items-center justify-center">
+          {/* Large Background Logo */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <OperatorLogo className="w-64 h-64" />
           </div>
-          <p className="text-zinc-300 leading-relaxed">This isn't just another system. This is a system designed for people who are done making excuses and ready to execute at the highest level.</p>
+          
+          {/* Overlaid Text */}
+          <div className="relative z-10 text-center space-y-6 px-4">
+            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+              THE OPERATOR
+            </h2>
+            <div className="w-24 h-1 bg-amber-500 mx-auto" />
+            <p className="text-xl text-zinc-300 font-medium max-w-md mx-auto">
+              Your execution system that enforces focus, priorities, and follow-through
+            </p>
+            <p className="text-zinc-400 leading-relaxed max-w-md mx-auto">
+              This isn't just another system. This is a system designed for people who are done making excuses and ready to execute at the highest level.
+            </p>
+          </div>
         </div>
   }, {
     title: 'The Core Truth',
